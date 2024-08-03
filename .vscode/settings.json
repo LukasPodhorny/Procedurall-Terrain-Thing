@@ -51,5 +51,6 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "survival hra.sln"
+    "dotnet.defaultSolution": "survival hra.sln",
+    "dotnet.preferCSharpExtension": true
 }
