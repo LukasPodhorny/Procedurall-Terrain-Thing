@@ -14,7 +14,9 @@ public class MeshGenerator : MonoBehaviour
 
     public int chunk_size;
     public Material mesh_mat;
-    public float[] lods;
+    [Tooltip("Make sure it's in descending order and smaller by double, not less!")]
+    public int[] lods;
+    int max_lod;
 
     [Header("Tiling")]
 
@@ -29,18 +31,17 @@ public class MeshGenerator : MonoBehaviour
 
     [Header("NoiseMap")]
     public float height_multiplier;
-    float[][,] noisemaps;
+    float[,] noisemap;
 
     void Start()
     {
         NoiseParameters terrain_noise_parameters = JsonHelper.LoadClass<NoiseParameters>("terrain_noise_data");
-        noisemaps = new float[lods.Length][,];
-
-        for (int i = 0; i < lods.Length; i++)
-        {
-            noisemaps[i] = PerlinNoise.GenerateCombinedNoiseMap(terrain_noise_parameters, 1000, 1000, lods[i]);
-        }
-
+        
+        max_lod = lods[0];
+        var temp = Time.realtimeSinceStartup;
+        noisemap = NoiseMapGenerator.GenerateCombinedNoiseMap(terrain_noise_parameters, 1000, 1000, max_lod);
+        print(Time.realtimeSinceStartup-temp);
+        
         GenerateChunks();
     }
     void Update()
@@ -71,8 +72,8 @@ public class MeshGenerator : MonoBehaviour
             chunks[i].chunk_object.transform.position = points[i];
 
 
-            Vector3Int chunk_offset = (points[i] + new Vector3Int(300, 0, 300)) / chunk_size;
-            chunks[i].mesh_chunk.UpdateMeshNoiseMap(noisemaps[lod_group], chunk_offset, height_multiplier);
+            Vector3Int chunk_offset = (points[i] + new Vector3Int(400, 0, 400)) * max_lod;
+            chunks[i].mesh_chunk.UpdateMeshNoiseMap(noisemap, chunk_offset, height_multiplier, max_lod);
         }
     }
 
@@ -88,8 +89,8 @@ public class MeshGenerator : MonoBehaviour
                 int lod_group = Mathf.Max(Mathf.Abs(points[i].x), Mathf.Abs(points[i].z)) / chunk_size;
                 chunks[i].chunk_object.transform.position = points[i] + player_grid_pos * chunk_size;
 
-                Vector3Int chunk_offset = (points[i] + player_grid_pos * chunk_size + new Vector3Int(300, 0, 300)) / chunk_size;
-                chunks[i].mesh_chunk.UpdateMeshNoiseMap(noisemaps[lod_group], chunk_offset, height_multiplier);
+                Vector3Int chunk_offset = (points[i] + player_grid_pos * chunk_size + new Vector3Int(400, 0, 400)) * max_lod;
+                chunks[i].mesh_chunk.UpdateMeshNoiseMap(noisemap, chunk_offset, height_multiplier, max_lod);
             }
         }
 

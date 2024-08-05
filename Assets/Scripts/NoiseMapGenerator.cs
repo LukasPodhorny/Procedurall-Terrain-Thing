@@ -66,7 +66,7 @@ public class NoiseMapGenerator : MonoBehaviour
             {
                 for (int x = 0; x < xsize; x++)
                 {
-                    float noise_value = redistribution.Evaluate(PerlinNoise.GetCombinedNoiseValue(new NoiseParameters(terrain_noises, offsetX, offsetY, frequency, redistribution), x, y, true));
+                    float noise_value = redistribution.Evaluate(GetCombinedNoiseValue(new NoiseParameters(terrain_noises, offsetX, offsetY, frequency, redistribution), x, y, true));
 
                     if (map_object.activeInHierarchy)
                     {
@@ -77,6 +77,50 @@ public class NoiseMapGenerator : MonoBehaviour
 
             noisetexture.Apply();
         }
+    }
+
+    public static float[,] GenerateCombinedNoiseMap(NoiseParameters noise_parameters, int xsize, int ysize, float lod)
+    {
+        int lod_xsize = Mathf.RoundToInt(xsize * lod);
+        int lod_ysize = Mathf.RoundToInt(ysize * lod);
+
+        float[,] height_map = new float[lod_xsize, lod_ysize];
+
+        for (int y = 0; y < lod_ysize; y++)
+        {
+            for (int x = 0; x < lod_xsize; x++)
+            {
+                height_map[x, y] = GetCombinedNoiseValue(noise_parameters, x / lod, y / lod);
+            }
+        }
+
+        return height_map;
+    }
+    public static float GetCombinedNoiseValue(NoiseParameters noise_parameters, float x, float y, bool only_active_noises = false)
+    {
+        PerlinNoise[] noises = noise_parameters.noises;
+        float offsetX = noise_parameters.offsetX;
+        float offsetY = noise_parameters.offsetY;
+        float frequency = noise_parameters.frequency;
+        AnimationCurve redistribution = noise_parameters.redistribution;
+
+
+        float value = 0;
+        float max_value = 0;
+
+        float sample_x = (x + offsetX) * frequency;
+        float sample_y = (y + offsetY) * frequency;
+
+        for (int i = 0; i < noises.Length; i++)
+        {
+            if (noises[i].active || !only_active_noises)
+            {
+                value += noises[i].amplitude * noises[i].GetNoiseValue(sample_x, sample_y);
+                max_value += noises[i].amplitude;
+            }
+        }
+
+        return redistribution.Evaluate(value / max_value);
     }
 }
 public class NoiseParameters

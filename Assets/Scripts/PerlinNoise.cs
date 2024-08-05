@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.UIElements;
 using System.IO;
+using System.Threading.Tasks;
 
 [System.Serializable]
 public class PerlinNoise
@@ -12,6 +13,7 @@ public class PerlinNoise
     // active checkbox is used for noise editor
     public bool active;
     public int octaves;
+    [Range(0,1)]
     public float frequency;
     public float amplitude;
     [Range(0, 1)]
@@ -59,14 +61,14 @@ public class PerlinNoise
 
         float[,] height_map = new float[lod_xsize, lod_ysize];
 
-        for (int y = 0; y < lod_ysize; y++)
+        Parallel.For(0, lod_ysize, y =>
         {
             for (int x = 0; x < lod_xsize; x++)
             {
                 float value = GetNoiseValue(x / lod, y / lod);
                 height_map[x, y] = value;
             }
-        }
+        });
 
         return height_map;
     }
@@ -87,46 +89,5 @@ public class PerlinNoise
 
         return max_value;
     }
-    public static float[,] GenerateCombinedNoiseMap(NoiseParameters noise_parameters, int xsize, int ysize, float lod)
-    {
-        int lod_xsize = Mathf.RoundToInt(xsize * lod);
-        int lod_ysize = Mathf.RoundToInt(ysize * lod);
-
-        float[,] height_map = new float[lod_xsize, lod_ysize];
-
-        for (int y = 0; y < lod_ysize; y++)
-        {
-            for (int x = 0; x < lod_xsize; x++)
-            {
-                height_map[x, y] = GetCombinedNoiseValue(noise_parameters, x / lod, y / lod);
-            }
-        }
-
-        return height_map;
-    }
-    public static float GetCombinedNoiseValue(NoiseParameters noise_parameters, float x, float y, bool only_active_noises = false)
-    {
-        PerlinNoise[] noises = noise_parameters.noises;
-        float offsetX = noise_parameters.offsetX;
-        float offsetY = noise_parameters.offsetY;
-        float frequency = noise_parameters.frequency;
-        AnimationCurve redistribution = noise_parameters.redistribution;
-
-
-        float value = 0;
-        float max_value = 0;
-
-        for (int i = 0; i < noises.Length; i++)
-        {
-            if (noises[i].active || !only_active_noises)
-            {
-                value += noises[i].amplitude * noises[i].GetNoiseValue((x + offsetX) * frequency, (y + offsetY) * frequency);
-                max_value += noises[i].amplitude;
-            }
-        }
-
-        return redistribution.Evaluate(value / max_value);
-    }
-
 }
 

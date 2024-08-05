@@ -65,26 +65,14 @@ public class MeshChunk
         UpdateMesh();
         return mesh;
     }
-    public void UpdateMeshNoiseMap(float[,] noisemap, Vector3Int offset, float amplitude)
+    public void UpdateMeshNoiseMap(float[,] noisemap, Vector3Int offset, float height_multiplier, float max_lod)
     {
+        int lod_ratio = (int)(max_lod/lod);
         for (int z = 0, i = 0; z <= ysize; z++)
         {
             for (int x = 0; x <= xsize; x++)
             {
-                vertices[i].y = (noisemap[x + offset.x * xsize, z + offset.z * ysize] - 0.5f) * amplitude;
-                i++;
-            }
-        }
-
-        UpdateMesh();
-    }
-    public void UpdateMeshNoiseMapNew(float[,] noisemap, float max_lod, Vector3Int offset, float amplitude)
-    {
-        for (int z = 0, i = 0; z <= ysize; z++)
-        {
-            for (int x = 0; x <= xsize; x++)
-            {
-                vertices[i].y = (noisemap[(int)((x + offset.x) / lod), (int)((z + offset.z) / lod)] - 0.5f) * amplitude;
+                vertices[i].y = (noisemap[x * lod_ratio + offset.x, z * lod_ratio + offset.z] - 0.5f) * height_multiplier;
                 i++;
             }
         }
