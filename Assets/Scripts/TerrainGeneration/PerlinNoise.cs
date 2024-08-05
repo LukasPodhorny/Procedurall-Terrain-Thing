@@ -61,14 +61,14 @@ public class PerlinNoise
 
         float[,] height_map = new float[lod_xsize, lod_ysize];
 
-        Parallel.For(0, lod_ysize, y =>
+        for (int y = 0; y < lod_ysize; y++)
         {
             for (int x = 0; x < lod_xsize; x++)
             {
                 float value = GetNoiseValue(x / lod, y / lod);
                 height_map[x, y] = value;
             }
-        });
+        }
 
         return height_map;
     }
@@ -89,5 +89,6 @@ public class PerlinNoise
 
         return max_value;
     }
+    
 }
 
