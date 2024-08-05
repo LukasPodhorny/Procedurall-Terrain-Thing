@@ -353,11 +353,11 @@
 -r:"Library/Bee/artifacts/1900b0aE.dag/UnityEngine.UI.ref.dll"
 -analyzer:"C:/Program Files/Unity/Hub/Editor/2022.3.17f1/Editor/Data/Tools/Unity.SourceGenerators/Unity.Properties.SourceGenerator.dll"
 -analyzer:"C:/Program Files/Unity/Hub/Editor/2022.3.17f1/Editor/Data/Tools/Unity.SourceGenerators/Unity.SourceGenerators.dll"
-"Assets/Scripts/JsonHelper.cs"
-"Assets/Scripts/MeshChunk.cs"
-"Assets/Scripts/MeshGenerator.cs"
-"Assets/Scripts/NoiseMapGenerator.cs"
-"Assets/Scripts/PerlinNoise.cs"
+"Assets/Scripts/TerrainGeneration/JsonHelper.cs"
+"Assets/Scripts/TerrainGeneration/MeshChunk.cs"
+"Assets/Scripts/TerrainGeneration/MeshGenerator.cs"
+"Assets/Scripts/TerrainGeneration/NoiseMapGenerator.cs"
+"Assets/Scripts/TerrainGeneration/PerlinNoise.cs"
 -langversion:9.0
 
 /deterministic
