@@ -13,7 +13,7 @@ public class PerlinNoise
     // active checkbox is used for noise editor
     public bool active;
     public int octaves;
-    [Range(0,1)]
+    [Range(0, 1)]
     public float frequency;
     public float amplitude;
     [Range(0, 1)]
