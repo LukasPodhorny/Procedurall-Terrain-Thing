@@ -30,17 +30,19 @@ public class MeshGenerator : MonoBehaviour
     Vector3Int[] points;
 
     [Header("NoiseMap")]
+    public string DATA_NAME = "terrain_noise_data";
     public float height_multiplier;
-    float[,] noisemap;
+    float[] noisemap;
+    public ComputeShader NoiseCompute;
 
     void Start()
     {
-        NoiseParameters terrain_noise_parameters = JsonHelper.LoadClass<NoiseParameters>("terrain_noise_data");
+        NoiseParameters terrain_noise_parameters = JsonHelper.LoadClass<NoiseParameters>(DATA_NAME);
         
+        float temp = Time.realtimeSinceStartup;
         max_lod = lods[0];
-        var temp = Time.realtimeSinceStartup;
-        noisemap = NoiseMapGenerator.GenerateCombinedNoiseMap(terrain_noise_parameters, 1000, 1000, max_lod);
-        print(Time.realtimeSinceStartup-temp);
+        noisemap = NoiseMapGenerator.GenerateCombinedNoiseMapGpu(terrain_noise_parameters, 1000, 1000, max_lod, NoiseCompute);
+        print(Time.realtimeSinceStartup-temp + " seconds it took to compute world noisemap");
         
         GenerateChunks();
     }
@@ -73,7 +75,7 @@ public class MeshGenerator : MonoBehaviour
 
 
             Vector3Int chunk_offset = (points[i] + new Vector3Int(400, 0, 400)) * max_lod;
-            chunks[i].mesh_chunk.UpdateMeshNoiseMap(noisemap, chunk_offset, height_multiplier, max_lod);
+            chunks[i].mesh_chunk.UpdateMeshNoiseMap1D(noisemap, chunk_offset, height_multiplier, max_lod, 1000);
         }
     }
 
@@ -90,7 +92,7 @@ public class MeshGenerator : MonoBehaviour
                 chunks[i].chunk_object.transform.position = points[i] + player_grid_pos * chunk_size;
 
                 Vector3Int chunk_offset = (points[i] + player_grid_pos * chunk_size + new Vector3Int(400, 0, 400)) * max_lod;
-                chunks[i].mesh_chunk.UpdateMeshNoiseMap(noisemap, chunk_offset, height_multiplier, max_lod);
+                chunks[i].mesh_chunk.UpdateMeshNoiseMap1D(noisemap, chunk_offset, height_multiplier, max_lod, 1000);
             }
         }
 
@@ -129,6 +131,18 @@ public class MeshGenerator : MonoBehaviour
     Vector3Int ToGridPos(Vector3 pos, int unit_size)
     {
         return new Vector3Int((int)Mathf.Floor(pos.x / unit_size), 0, (int)Mathf.Floor(pos.z / unit_size));
+    }
+    private static T[,] Make2DArray<T>(T[] input, int height, int width)
+    {
+        T[,] output = new T[height, width];
+        for (int i = 0; i < height; i++)
+        {
+            for (int j = 0; j < width; j++)
+            {
+                output[i, j] = input[i * width + j];
+            }
+        }
+        return output;
     }
 }
 class Chunk

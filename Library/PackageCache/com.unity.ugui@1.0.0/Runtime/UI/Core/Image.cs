@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Serialization;
 using UnityEngine.U2D;
@@ -766,9 +769,14 @@ namespace UnityEngine.UI
             {
                 if (m_Material != null)
                     return m_Material;
+
+                //Edit and Runtime should use Split Alpha Shader if EditorSettings.spritePackerMode = Sprite Atlas V2
 #if UNITY_EDITOR
-                if (Application.isPlaying && activeSprite && activeSprite.associatedAlphaSplitTexture != null)
+                if ((Application.isPlaying || EditorSettings.spritePackerMode == SpritePackerMode.SpriteAtlasV2) &&
+                    activeSprite && activeSprite.associatedAlphaSplitTexture != null)
+                {
                     return defaultETC1GraphicMaterial;
+                }
 #else
 
                 if (activeSprite && activeSprite.associatedAlphaSplitTexture != null)

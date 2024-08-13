@@ -1,0 +1,101 @@
+#pragma kernel CSMain
+
+float2 unity_gradientNoise_dir(float2 p)
+{
+    p = p % 289;
+    float x = (34 * p.x + 1) * p.x % 289 + p.y;
+    x = (34 * x + 1) * x % 289;
+    x = frac(x / 41) * 2 - 1;
+    return normalize(float2(x - floor(x + 0.5), abs(x) - 0.5));
+}
+
+float unity_gradientNoise(float2 p)
+{
+    float2 ip = floor(p);
+    float2 fp = frac(p);
+    float d00 = dot(unity_gradientNoise_dir(ip), fp);
+    float d01 = dot(unity_gradientNoise_dir(ip + float2(0, 1)), fp - float2(0, 1));
+    float d10 = dot(unity_gradientNoise_dir(ip + float2(1, 0)), fp - float2(1, 0));
+    float d11 = dot(unity_gradientNoise_dir(ip + float2(1, 1)), fp - float2(1, 1));
+    fp = fp * fp * fp * (fp * (fp * 6 - 15) + 10);
+    return lerp(lerp(d00, d01, fp.y), lerp(d10, d11, fp.y), fp.x);
+}
+
+float GradientNoise(float2 UV)
+{
+    return unity_gradientNoise(UV) + 0.5;
+}
+
+float EvaulateCurve(RWStructuredBuffer<float> curve, float time)
+{
+    return curve[round(time*(curve.Length-1))];
+}
+
+
+struct ShaderPerlinNoise
+{
+    int octaves;
+    float frequency;
+    float amplitude;
+    float persistence;
+    float lacunarity;
+    float offsetX;
+    float offsetY;
+    float max_value;
+};
+
+RWStructuredBuffer<float> height_map;
+RWStructuredBuffer<float> redistribution;
+RWStructuredBuffer<float> noises_redistributions;
+RWStructuredBuffer<ShaderPerlinNoise> noises;
+
+
+float EvaulateCurveArray(RWStructuredBuffer<float> curve_array, float time, int index)
+{
+    float r_resolution = curve_array.Length/noises.Length;
+    return curve_array[round(time*((r_resolution*(index+1))-1))];
+}
+
+
+float lod;
+
+float offsetX;
+float offsetY;
+float frequency;
+
+uint lod_xsize;
+uint lod_ysize;
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    if(id.x > lod_xsize || id.y > lod_ysize)
+    {
+        return;
+    }
+
+    float final_value = 0;
+
+    for(uint i = 0;i < noises.Length;i++)
+    {
+        float n_frequency = noises[i].frequency;
+        float n_amplitude = noises[i].amplitude;
+
+        float value = 0;
+        for (int j = 0; j < noises[i].octaves; j++)
+        {
+            float sampleX = ((id.x/lod) + offsetX)*frequency;
+            float sampleY = ((id.y/lod) + offsetY)*frequency;
+
+            value += n_amplitude * GradientNoise(float2((sampleX + noises[i].offsetX) * n_frequency, (sampleY + noises[i].offsetY) * n_frequency));
+
+            n_amplitude *= noises[i].persistence;
+            n_frequency *= noises[i].lacunarity;
+        }
+
+        final_value += EvaulateCurveArray(noises_redistributions, value / noises[i].max_value, i);
+    }
+
+
+    height_map[id.y * lod_xsize + id.x] = EvaulateCurve(redistribution, final_value/noises.Length);
+}
