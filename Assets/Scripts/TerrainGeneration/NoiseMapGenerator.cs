@@ -96,6 +96,23 @@ public class NoiseMapGenerator : MonoBehaviour
 
         return height_map;
     }
+    public static float[,] GenerateCombinedNoiseMapGpu(NoiseParameters noise_parameters, int xsize, int ysize, float lod)
+    {
+        int lod_xsize = Mathf.RoundToInt(xsize * lod);
+        int lod_ysize = Mathf.RoundToInt(ysize * lod);
+
+        float[,] height_map = new float[lod_xsize, lod_ysize];
+
+        for (int y = 0; y < lod_ysize; y++)
+        {
+            for (int x = 0; x < lod_xsize; x++)
+            {
+                height_map[x, y] = GetCombinedNoiseValue(noise_parameters, x / lod, y / lod);
+            }
+        }
+
+        return height_map;
+    }
     public static float GetCombinedNoiseValue(NoiseParameters noise_parameters, float x, float y, bool only_active_noises = false)
     {
         PerlinNoise[] noises = noise_parameters.noises;
@@ -123,7 +140,7 @@ public class NoiseMapGenerator : MonoBehaviour
         return redistribution.Evaluate(value / max_value);
     }
 }
-public class NoiseParameters
+public struct NoiseParameters
 {
     public PerlinNoise[] noises;
     public float offsetX;

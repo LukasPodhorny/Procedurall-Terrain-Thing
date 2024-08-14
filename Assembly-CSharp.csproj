@@ -45,6 +45,7 @@
      <Compile Include="Assets\Scripts\TerrainGeneration\JsonHelper.cs" />
      <Compile Include="Assets\Scripts\TerrainGeneration\PerlinNoise.cs" />
      <Compile Include="Assets\Scripts\TerrainGeneration\NoiseMapGenerator.cs" />
+     <None Include="Assets\Scripts\TerrainGeneration\ComputeShaders\NoiseCompute.compute" />
     <Reference Include="UnityEngine">
         <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.0f1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
     </Reference>
