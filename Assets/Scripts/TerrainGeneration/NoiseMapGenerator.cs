@@ -48,7 +48,7 @@ public class NoiseMapGenerator : MonoBehaviour
         else if (LOAD_DATA)
         {
             NoiseParameters noise_parameters = JsonHelper.LoadClass<NoiseParameters>(DATA_NAME);
-            
+
             terrain_noises = noise_parameters.noises;
             offsetX = noise_parameters.offsetX;
             offsetY = noise_parameters.offsetY;
@@ -77,11 +77,14 @@ public class NoiseMapGenerator : MonoBehaviour
                 }
             }
 
+            NoiseParameters noise_parameters = new NoiseParameters(terrain_noises, offsetX, offsetY, frequency, redistribution);
+            float[,] noise_map = GenerateCombinedNoiseMap(noise_parameters, xsize, ysize, 1);
+
             for (int y = 0; y < ysize; y++)
             {
                 for (int x = 0; x < xsize; x++)
                 {
-                    float noise_value = redistribution.Evaluate(GetCombinedNoiseValue(new NoiseParameters(terrain_noises, offsetX, offsetY, frequency, redistribution, false), x, y, true));
+                    float noise_value = redistribution.Evaluate(noise_map[x, y]);
 
                     if (map_object.activeInHierarchy)
                     {
@@ -114,7 +117,7 @@ public class NoiseMapGenerator : MonoBehaviour
                 {
                     if (map_object.activeInHierarchy)
                     {
-                        noisetexture.SetPixel(x, y, Color.Lerp(Color.white, Color.black, noise_map[y*xsize+x]));
+                        noisetexture.SetPixel(x, y, Color.Lerp(Color.white, Color.black, noise_map[y * xsize + x]));
                     }
                 }
             }
@@ -171,30 +174,30 @@ public class NoiseMapGenerator : MonoBehaviour
         int lod_xsize = Mathf.RoundToInt(xsize * lod);
         int lod_ysize = Mathf.RoundToInt(ysize * lod);
 
-        float[] height_map = new float[lod_xsize * lod_ysize]; 
+        float[] height_map = new float[lod_xsize * lod_ysize];
 
         // setting output buffer
-        ComputeBuffer height_map_buffer = new ComputeBuffer(lod_xsize*lod_ysize, sizeof(float));
+        ComputeBuffer height_map_buffer = new ComputeBuffer(lod_xsize * lod_ysize, sizeof(float));
         NoiseCompute.SetBuffer(0, "height_map", height_map_buffer);
-        
+
 
         // setting buffer variables to compute shader
         ComputeBuffer noises_buffer = new ComputeBuffer(noise_parameters.noises.Length, Marshal.SizeOf(typeof(ShaderPerlinNoise)));
         ShaderPerlinNoise[] noises = new ShaderPerlinNoise[noise_parameters.noises.Length];
-        for(int i = 0;i<noise_parameters.noises.Length;i++)
+        for (int i = 0; i < noise_parameters.noises.Length; i++)
         {
             noises[i] = new ShaderPerlinNoise(noise_parameters.noises[i]);
         }
         noises_buffer.SetData(noises);
         NoiseCompute.SetBuffer(0, "noises", noises_buffer);
-    
+
         ComputeBuffer redistribution_buffer = new ComputeBuffer(noise_parameters.r_resolution, sizeof(float));
         redistribution_buffer.SetData(noise_parameters.redistribution_data);
         NoiseCompute.SetBuffer(0, "redistribution", redistribution_buffer);
 
-        ComputeBuffer noise_redistributions_buffer = new ComputeBuffer(noise_parameters.r_resolution*noises.Length, sizeof(float));
-        noise_redistributions_buffer.SetData(noise_parameters.noise_redistribution_datas);
-        NoiseCompute.SetBuffer(0, "noises_redistributions", noise_redistributions_buffer);
+        ComputeBuffer noise_redistribution_buffer = new ComputeBuffer(noise_parameters.noise_redistribution_data.Length, sizeof(float));
+        noise_redistribution_buffer.SetData(noise_parameters.noise_redistribution_data);
+        NoiseCompute.SetBuffer(0, "noise_redistribution", noise_redistribution_buffer);
 
 
         // setting variables to compute shader
@@ -204,10 +207,10 @@ public class NoiseMapGenerator : MonoBehaviour
         NoiseCompute.SetFloat("frequency", noise_parameters.frequency);
         NoiseCompute.SetInt("lod_xsize", lod_xsize);
         NoiseCompute.SetInt("lod_ysize", lod_ysize);
-        
+
         // calculating thread groups
-        int threadGroupsX = Mathf.CeilToInt((float)lod_xsize/8);
-        int threadGroupsY = Mathf.CeilToInt((float)lod_ysize/8);
+        int threadGroupsX = Mathf.CeilToInt((float)lod_xsize / 8);
+        int threadGroupsY = Mathf.CeilToInt((float)lod_ysize / 8);
 
         // executing the kernel and sending data back to height_map
         NoiseCompute.Dispatch(0, threadGroupsX, threadGroupsY, 1);
@@ -217,7 +220,7 @@ public class NoiseMapGenerator : MonoBehaviour
         height_map_buffer.Release();
         noises_buffer.Release();
         redistribution_buffer.Release();
-        noise_redistributions_buffer.Release();
+        noise_redistribution_buffer.Release();
 
 
         return height_map;
@@ -225,13 +228,24 @@ public class NoiseMapGenerator : MonoBehaviour
     public static float[] PreEvAnimationCurve(AnimationCurve animationCurve, int resolution)
     {
         float[] result = new float[resolution];
-        float step = 1f/(resolution-1);
+        float step = 1f / (resolution - 1);
 
-        for(int i = 0;i < resolution; i++)
+        for (int i = 0; i < resolution; i++)
         {
-            result[i] = animationCurve.Evaluate(i*step);
+            result[i] = animationCurve.Evaluate(i * step);
         }
         return result;
+    }
+    public static int BoolToInt(bool value)
+    {
+        if (value)
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
     }
 }
 public struct NoiseParameters
@@ -243,10 +257,10 @@ public struct NoiseParameters
     public AnimationCurve redistribution;
 
     public float[] redistribution_data;
-    public float[] noise_redistribution_datas;
+    public float[] noise_redistribution_data;
     public int r_resolution;
 
-    public NoiseParameters(PerlinNoise[] noises, float offsetX, float offsetY, float frequency, AnimationCurve redistribution, bool compute_r_data = true, int r_resolution = 10_000):this()
+    public NoiseParameters(PerlinNoise[] noises, float offsetX, float offsetY, float frequency, AnimationCurve redistribution, bool compute_r_data = true, int r_resolution = 10_000) : this()
     {
         this.noises = noises;
         this.offsetX = offsetX;
@@ -256,18 +270,18 @@ public struct NoiseParameters
 
         this.r_resolution = r_resolution;
 
-        if(compute_r_data)
+        if (compute_r_data)
         {
             redistribution_data = NoiseMapGenerator.PreEvAnimationCurve(redistribution, r_resolution);
 
-            noise_redistribution_datas = new float[noises.Length*r_resolution];
-            for(int i = 0; i < noises.Length; i++)
+            noise_redistribution_data = new float[noises.Length * r_resolution];
+            for (int i = 0; i < noises.Length; i++)
             {
                 float[] current_curve = NoiseMapGenerator.PreEvAnimationCurve(noises[i].redistribution, r_resolution);
 
-                for(int j = 0;j < r_resolution; j++)
+                for (int j = 0; j < r_resolution; j++)
                 {
-                    noise_redistribution_datas[r_resolution*i+j] = current_curve[j];
+                    noise_redistribution_data[r_resolution * i + j] = current_curve[j];
                 }
             }
         }
@@ -277,7 +291,7 @@ public struct ShaderPerlinNoise
 {
     // active checkbox is used for noise editor
     // can't pass bools directly to shader
-    //public bool active;
+    public int active;
     public int octaves;
     public float frequency;
     public float amplitude;
@@ -291,6 +305,7 @@ public struct ShaderPerlinNoise
 
     public ShaderPerlinNoise(PerlinNoise noise)
     {
+        active = NoiseMapGenerator.BoolToInt(noise.active);
         octaves = noise.octaves;
         frequency = noise.frequency;
         amplitude = noise.amplitude;
