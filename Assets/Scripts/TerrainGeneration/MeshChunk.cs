@@ -79,6 +79,22 @@ public class MeshChunk
 
         UpdateMesh();
     }
+    public void UpdateMeshNoiseMap1D(float[] noisemap, Vector3Int offset, float height_multiplier, int max_lod, int map_width)
+    {
+        int lod_ratio = (int)(max_lod/lod);
+        for (int z = 0, i = 0; z <= ysize; z++)
+        {
+            for (int x = 0; x <= xsize; x++)
+            {
+                // Convert 2D index to 1D index: index = row * width + column
+                int noiseMapIndex = (x * lod_ratio + offset.x) + (z * lod_ratio + offset.z) * map_width * max_lod;
+                vertices[i].y = (noisemap[noiseMapIndex] - 0.5f) * height_multiplier;
+                i++;
+            }
+        }
+
+        UpdateMesh();
+    }
     public void UpdateMesh()
     {
         mesh.Clear();
