@@ -206,8 +206,8 @@ public class NoiseMapGenerator : MonoBehaviour
         NoiseCompute.SetInt("lod_ysize", lod_ysize);
         
         // calculating thread groups
-        int threadGroupsX = Mathf.CeilToInt(lod_xsize/8);
-        int threadGroupsY = Mathf.CeilToInt(lod_ysize/8);
+        int threadGroupsX = Mathf.CeilToInt((float)lod_xsize/8);
+        int threadGroupsY = Mathf.CeilToInt((float)lod_ysize/8);
 
         // executing the kernel and sending data back to height_map
         NoiseCompute.Dispatch(0, threadGroupsX, threadGroupsY, 1);

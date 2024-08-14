@@ -93,7 +93,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             n_frequency *= noises[i].lacunarity;
         }
 
-        final_value += EvaulateCurveArray(noises_redistributions, value / noises[i].max_value, i);
+        final_value += value / noises[i].max_value;
     }
 
 
