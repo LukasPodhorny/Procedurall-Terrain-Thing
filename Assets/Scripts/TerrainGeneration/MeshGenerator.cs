@@ -42,9 +42,11 @@ public class MeshGenerator : MonoBehaviour
         float temp = Time.realtimeSinceStartup;
         max_lod = lods[0];
         noisemap = NoiseMapGenerator.GenerateCombinedNoiseMapGpu(terrain_noise_parameters, 1000, 1000, max_lod, NoiseCompute);
-        print(Time.realtimeSinceStartup - temp + " seconds it took to compute world noisemap");
+        print(Time.realtimeSinceStartup - temp + " seconds it took to compute world noisemap on gpu");
 
+        float temp2 = Time.realtimeSinceStartup;
         GenerateChunks();
+        print(Time.realtimeSinceStartup - temp2 + " seconds it took to calculate mesh cpu");
     }
     void Update()
     {
