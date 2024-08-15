@@ -18,6 +18,8 @@ public class NoiseMapGenerator : MonoBehaviour
     public GameObject map_object;
     public int xsize, ysize;
 
+    [Header("Compute Shader")]
+    public ComputeShader NoiseCompute;
 
     [Header("Noise Parameters")]
     public PerlinNoise[] terrain_noises;
@@ -25,11 +27,12 @@ public class NoiseMapGenerator : MonoBehaviour
     public float offsetY;
     public float frequency;
     public AnimationCurve redistribution;
-    public ComputeShader NoiseCompute;
+    public Gradient color_map;
 
-    [Header("DANGER ZONE")]
+    [Header("DATA")]
+    [Tooltip("Name of the file to load/save")]
     public string DATA_NAME = "terrain_noise_data";
-    [Tooltip("WHEN CHECKED IT WILL OVERWRITE ALL DATA BASED ON VALUES IN INSPECTOR!")]
+    [Tooltip("WHEN CHECKED IT WILL SAVE/OVERWRITE ALL DATA BASED ON VALUES IN INSPECTOR!")]
     public bool SAVE_DATA;
     public bool LOAD_DATA;
 
@@ -88,7 +91,7 @@ public class NoiseMapGenerator : MonoBehaviour
 
                     if (map_object.activeInHierarchy)
                     {
-                        noisetexture.SetPixel(x, y, Color.Lerp(Color.white, Color.black, noise_value));
+                        noisetexture.SetPixel(x, y, color_map.Evaluate(noise_value));
                     }
                 }
             }
@@ -117,7 +120,7 @@ public class NoiseMapGenerator : MonoBehaviour
                 {
                     if (map_object.activeInHierarchy)
                     {
-                        noisetexture.SetPixel(x, y, Color.Lerp(Color.white, Color.black, noise_map[y * xsize + x]));
+                        noisetexture.SetPixel(x, y, color_map.Evaluate(noise_map[y * xsize + x]));
                     }
                 }
             }
@@ -298,7 +301,7 @@ public struct ShaderPerlinNoise
     public float persistence;
     public float lacunarity;
     // can't pass AnimationCurve directly to shader, but can evaluate some some quality
-    //public AnimationCurve redistribution;
+    // public AnimationCurve redistribution;
     public float offsetX;
     public float offsetY;
     public float max_value;

@@ -71,7 +71,7 @@ uint lod_ysize;
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    if(id.x > lod_xsize-1 || id.y > lod_ysize-1)
+    if(id.x >= lod_xsize || id.y >= lod_ysize)
     {
         return;
     }

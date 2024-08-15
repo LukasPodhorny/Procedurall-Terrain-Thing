@@ -38,12 +38,12 @@ public class MeshGenerator : MonoBehaviour
     void Start()
     {
         NoiseParameters terrain_noise_parameters = JsonHelper.LoadClass<NoiseParameters>(DATA_NAME);
-        
+
         float temp = Time.realtimeSinceStartup;
         max_lod = lods[0];
         noisemap = NoiseMapGenerator.GenerateCombinedNoiseMapGpu(terrain_noise_parameters, 1000, 1000, max_lod, NoiseCompute);
-        print(Time.realtimeSinceStartup-temp + " seconds it took to compute world noisemap");
-        
+        print(Time.realtimeSinceStartup - temp + " seconds it took to compute world noisemap");
+
         GenerateChunks();
     }
     void Update()
@@ -131,18 +131,6 @@ public class MeshGenerator : MonoBehaviour
     Vector3Int ToGridPos(Vector3 pos, int unit_size)
     {
         return new Vector3Int((int)Mathf.Floor(pos.x / unit_size), 0, (int)Mathf.Floor(pos.z / unit_size));
-    }
-    private static T[,] Make2DArray<T>(T[] input, int height, int width)
-    {
-        T[,] output = new T[height, width];
-        for (int i = 0; i < height; i++)
-        {
-            for (int j = 0; j < width; j++)
-            {
-                output[i, j] = input[i * width + j];
-            }
-        }
-        return output;
     }
 }
 class Chunk
