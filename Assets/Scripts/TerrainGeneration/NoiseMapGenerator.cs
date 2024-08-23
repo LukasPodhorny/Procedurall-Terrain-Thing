@@ -45,7 +45,7 @@ public class NoiseMapGenerator : MonoBehaviour
     {
         if (SAVE_DATA)
         {
-            NoiseParameters noise_parameters = new NoiseParameters(terrain_noises, offsetX, offsetY, frequency, redistribution);
+            NoiseParameters noise_parameters = new NoiseParameters(terrain_noises, offsetX, offsetY, frequency, redistribution, color_map);
             JsonHelper.SaveClass(noise_parameters, DATA_NAME);
         }
         else if (LOAD_DATA)
@@ -80,7 +80,7 @@ public class NoiseMapGenerator : MonoBehaviour
                 }
             }
 
-            NoiseParameters noise_parameters = new NoiseParameters(terrain_noises, offsetX, offsetY, frequency, redistribution);
+            NoiseParameters noise_parameters = new NoiseParameters(terrain_noises, offsetX, offsetY, frequency, redistribution, color_map);
             float[,] noise_map = GenerateCombinedNoiseMap(noise_parameters, xsize, ysize, 1);
 
             for (int y = 0; y < ysize; y++)
@@ -111,7 +111,7 @@ public class NoiseMapGenerator : MonoBehaviour
                 }
             }
 
-            NoiseParameters noise_parameters = new NoiseParameters(terrain_noises, offsetX, offsetY, frequency, redistribution);
+            NoiseParameters noise_parameters = new NoiseParameters(terrain_noises, offsetX, offsetY, frequency, redistribution, color_map);
             float[] noise_map = GenerateCombinedNoiseMapGpu(noise_parameters, xsize, ysize, 1, NoiseCompute);
 
             for (int y = 0; y < ysize; y++)
@@ -239,6 +239,17 @@ public class NoiseMapGenerator : MonoBehaviour
         }
         return result;
     }
+    public static Color[] PreEvGradient(Gradient gradient, int resolution)
+    {
+        Color[] result = new Color[resolution];
+        float step = 1f / (resolution - 1);
+
+        for (int i = 0; i < resolution; i++)
+        {
+            result[i] = gradient.Evaluate(i * step);
+        }
+        return result;
+    }
     public static int BoolToInt(bool value)
     {
         if (value)
@@ -258,18 +269,20 @@ public struct NoiseParameters
     public float offsetY;
     public float frequency;
     public AnimationCurve redistribution;
+    public Gradient color_map;
 
     public float[] redistribution_data;
     public float[] noise_redistribution_data;
     public int r_resolution;
 
-    public NoiseParameters(PerlinNoise[] noises, float offsetX, float offsetY, float frequency, AnimationCurve redistribution, bool compute_r_data = true, int r_resolution = 10_000) : this()
+    public NoiseParameters(PerlinNoise[] noises, float offsetX, float offsetY, float frequency, AnimationCurve redistribution, Gradient color_map, bool compute_r_data = true, int r_resolution = 10_000) : this()
     {
         this.noises = noises;
         this.offsetX = offsetX;
         this.offsetY = offsetY;
         this.frequency = frequency;
         this.redistribution = redistribution;
+        this.color_map = color_map;
 
         this.r_resolution = r_resolution;
 

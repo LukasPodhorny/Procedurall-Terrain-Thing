@@ -25,6 +25,8 @@ public class MeshChunk
 
     public Mesh mesh;
     public Vector3[] vertices;
+    public Vector2[] uvs;
+    public Color[] colors;
     public int[] triangles;
 
     public Mesh GenerateMesh()
@@ -32,6 +34,8 @@ public class MeshChunk
 
         mesh = new Mesh();
         vertices = new Vector3[(xsize + 1) * (ysize + 1)];
+        colors = new Color[(xsize + 1) * (ysize + 1)];
+        uvs = new Vector2[(xsize + 1) * (ysize + 1)];
         triangles = new int[xsize * ysize * 6];
 
         for (int z = 0, i = 0; z <= ysize; z++)
@@ -39,6 +43,7 @@ public class MeshChunk
             for (int x = 0; x <= xsize; x++)
             {
                 vertices[i] = new Vector3(x * unit_size, 0, z * unit_size);
+                uvs[i] = new Vector2((float)x / xsize, (float)z / ysize);
                 i++;
             }
         }
@@ -65,39 +70,47 @@ public class MeshChunk
         UpdateMesh();
         return mesh;
     }
-    public void UpdateMeshNoiseMap(float[,] noisemap, Vector3Int offset, float height_multiplier, float max_lod)
+    public void UpdateMeshNoiseMap(float[,] noisemap, Vector3Int offset, float height_multiplier, float max_lod, Gradient mesh_color)
     {
         int lod_ratio = (int)(max_lod / lod);
         for (int z = 0, i = 0; z <= ysize; z++)
         {
             for (int x = 0; x <= xsize; x++)
             {
-                vertices[i].y = (noisemap[x * lod_ratio + offset.x, z * lod_ratio + offset.z] - 0.5f) * height_multiplier;
+                int sample_x = x * lod_ratio + offset.x;
+                int sample_z = z * lod_ratio + offset.z;
+
+                vertices[i].y = (noisemap[sample_x, sample_z]-0.4f) * height_multiplier;
+                colors[i] = mesh_color.Evaluate(noisemap[sample_x, sample_z]);
                 i++;
             }
         }
 
         UpdateMesh();
     }
-    public void UpdateMeshNoiseMap1D(float[] noisemap, Vector3Int offset, float height_multiplier, int max_lod, int map_width)
+    public void UpdateMeshNoiseMap1D(float[] noisemap, Vector3Int offset, float height_multiplier, int max_lod, int map_width, Color[] mesh_color)
     {
         int lod_ratio = (int)(max_lod / lod);
+        
         for (int z = 0, i = 0; z <= ysize; z++)
         {
             for (int x = 0; x <= xsize; x++)
             {
-                int noiseMapIndex = (x * lod_ratio + offset.x) + (z * lod_ratio + offset.z) * map_width * max_lod;
-                vertices[i].y = (noisemap[noiseMapIndex] - 0.5f) * height_multiplier;
+                int noiseMapIndex = x * lod_ratio + offset.x + (z * lod_ratio + offset.z) * map_width * max_lod;
+                vertices[i].y = (noisemap[noiseMapIndex] - 0.4f) * height_multiplier;
+                colors[i] = mesh_color[Mathf.RoundToInt(noisemap[noiseMapIndex] *  mesh_color.Length)];
                 i++;
             }
         }
-
+        
         UpdateMesh();
     }
     public void UpdateMesh()
     {
         mesh.Clear();
         mesh.vertices = vertices;
+        mesh.uv = uvs;
+        mesh.colors = colors;
         mesh.triangles = triangles;
         mesh.RecalculateNormals();
     }
