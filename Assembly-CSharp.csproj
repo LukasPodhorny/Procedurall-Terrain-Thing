@@ -64,14 +64,18 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.17f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\PROMETEO - Car Controller\Scripts\PrometeoTouchInput.cs" />
     <Compile Include="Assets\Scripts\TerrainGeneration\MeshGenerator.cs" />
     <Compile Include="Assets\Scripts\TerrainGeneration\MeshChunk.cs" />
+    <Compile Include="Assets\PROMETEO - Car Controller\Scripts\CameraFollow.cs" />
     <Compile Include="Assets\Scripts\TerrainGeneration\JsonHelper.cs" />
     <Compile Include="Assets\Scripts\TerrainGeneration\PerlinNoise.cs" />
     <Compile Include="Assets\Scripts\TerrainGeneration\NoiseMapGenerator.cs" />
+    <Compile Include="Assets\PROMETEO - Car Controller\Scripts\PrometeoCarController.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Scripts\TerrainGeneration\NoiseCompute.compute" />
+    <None Include="Assets\PROMETEO - Car Controller\Fonts\Licence.txt" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
