@@ -77,12 +77,13 @@ public class MeshGenerator : MonoBehaviour
         {
             int lod_group = Mathf.Max(Mathf.Abs(points[i].x), Mathf.Abs(points[i].z)) / chunk_size;
 
-            chunks[i] = new Chunk(chunk_size, chunk_size, lods[lod_group], height_multiplier, mesh_material);
+            chunks[i] = new Chunk(chunk_size, chunk_size, lods[lod_group], height_multiplier, mesh_material, lod_group);
             chunks[i].chunk_object.transform.position = points[i];
 
 
             Vector3Int chunk_offset = (points[i] + new Vector3Int(400, 0, 400)) * max_lod;
             chunks[i].mesh_chunk.UpdateMeshNoiseMap1D(noisemap, chunk_offset, height_multiplier, max_lod, 1000, gradient_1024);
+            chunks[i].UpdateCollider();
         }
     }
 
@@ -100,6 +101,7 @@ public class MeshGenerator : MonoBehaviour
                 Vector3Int chunk_offset = (points[i] + player_grid_pos * chunk_size + new Vector3Int(400, 0, 400)) * max_lod;
         
                 chunks[i].mesh_chunk.UpdateMeshNoiseMap1D(noisemap, chunk_offset, height_multiplier, max_lod, 1000, gradient_1024);
+                chunks[i].UpdateCollider();
             }
         }
 
@@ -144,13 +146,29 @@ class Chunk
     public MeshChunk mesh_chunk;
     public Mesh mesh;
     public GameObject chunk_object;
-    public Chunk(int xsize, int ysize, float lod, float amplitude, Material mat)
+    public float lod_group;
+    public Chunk(int xsize, int ysize, float lod, float amplitude, Material mat, int lod_group)
     {
+        this.lod_group = lod_group;
+        
         mesh_chunk = new MeshChunk(xsize, ysize, lod, amplitude);
         mesh = mesh_chunk.GenerateMesh();
 
         chunk_object = new GameObject();
         chunk_object.AddComponent<MeshFilter>().mesh = mesh;
         chunk_object.AddComponent<MeshRenderer>().sharedMaterial = mat;
+        
+        if(lod_group == 0||lod_group == 1)
+        {
+            chunk_object.AddComponent<MeshCollider>();
+        }
+    }
+
+    public void UpdateCollider()
+    {
+        if(lod_group == 0||lod_group == 1)
+        {
+            chunk_object.GetComponent<MeshCollider>().sharedMesh = mesh;
+        }
     }
 }
