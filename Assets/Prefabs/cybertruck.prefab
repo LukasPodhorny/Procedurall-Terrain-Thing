@@ -848,7 +848,7 @@ Rigidbody:
   serializedVersion: 4
   m_Mass: 960
   m_Drag: 0
-  m_AngularDrag: 0.3
+  m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -885,8 +885,8 @@ MonoBehaviour:
   steeringSpeed: 0.5
   brakeForce: 600
   decelerationMultiplier: 3
-  handbrakeDriftMultiplier: 1
-  bodyMassCenter: {x: 0, y: 0, z: 0}
+  handbrakeDriftMultiplier: 6
+  bodyMassCenter: {x: 0, y: 0.45, z: 0}
   frontLeftMesh: {fileID: 3048346129210541114}
   frontLeftCollider: {fileID: 7063023638774576222}
   frontRightMesh: {fileID: 1764484277770219949}
@@ -900,7 +900,7 @@ MonoBehaviour:
   RRWParticleSystem: {fileID: 0}
   RLWTireSkid: {fileID: 0}
   RRWTireSkid: {fileID: 0}
-  useUI: 0
+  useUI: 1
   carSpeedText: {fileID: 0}
   useSounds: 0
   carEngineSound: {fileID: 0}

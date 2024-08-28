@@ -11,16 +11,16 @@ public class MeshChunk
     public int xsize;
     public int ysize;
     public float lod;
+    public float lod_unit;
     public float unit_size;
-    public float max_depth;
 
-    public MeshChunk(int xsize, int ysize, float lod, float max_depth)
+    public MeshChunk(int xsize, int ysize, float lod, float unit_size)
     {
         this.lod = lod;
         this.xsize = Mathf.RoundToInt(xsize * lod);
         this.ysize = Mathf.RoundToInt(ysize * lod);
-        this.max_depth = max_depth;
-        unit_size = (float)xsize / (float)this.xsize;
+        lod_unit = (float)xsize / (float)this.xsize;
+        this.unit_size = unit_size;
     }
 
     public Mesh mesh;
@@ -42,7 +42,7 @@ public class MeshChunk
         {
             for (int x = 0; x <= xsize; x++)
             {
-                vertices[i] = new Vector3(x * unit_size, 0, z * unit_size);
+                vertices[i] = new Vector3(x * lod_unit * unit_size, 0, z * lod_unit * unit_size);
                 uvs[i] = new Vector2((float)x / xsize, (float)z / ysize);
                 i++;
             }
@@ -80,7 +80,7 @@ public class MeshChunk
                 int sample_x = x * lod_ratio + offset.x;
                 int sample_z = z * lod_ratio + offset.z;
 
-                vertices[i].y = (noisemap[sample_x, sample_z]-0.4f) * height_multiplier;
+                vertices[i].y = (noisemap[sample_x, sample_z] - 0.4f) * height_multiplier;
                 colors[i] = mesh_color.Evaluate(noisemap[sample_x, sample_z]);
                 i++;
             }
@@ -91,18 +91,18 @@ public class MeshChunk
     public void UpdateMeshNoiseMap1D(float[] noisemap, Vector3Int offset, float height_multiplier, int max_lod, int map_width, Color[] mesh_color)
     {
         int lod_ratio = (int)(max_lod / lod);
-        
+
         for (int z = 0, i = 0; z <= ysize; z++)
         {
             for (int x = 0; x <= xsize; x++)
             {
                 int noiseMapIndex = x * lod_ratio + offset.x + (z * lod_ratio + offset.z) * map_width * max_lod;
                 vertices[i].y = (noisemap[noiseMapIndex] - 0.4f) * height_multiplier;
-                colors[i] = mesh_color[Mathf.RoundToInt(noisemap[noiseMapIndex] *  mesh_color.Length)];
+                colors[i] = mesh_color[Mathf.RoundToInt(noisemap[noiseMapIndex] * mesh_color.Length)];
                 i++;
             }
         }
-        
+
         UpdateMesh();
     }
     public void UpdateMesh()
